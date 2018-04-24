@@ -156,7 +156,7 @@ namespace Duplicati.Library.Main.Database
             m_insertmetadatasetCommand.AddParameter();
 
             m_selectfilelastmodifiedCommand.CommandText = @"SELECT ""A"".""ID"", ""B"".""LastModified"" FROM (SELECT ""ID"" FROM ""FileLookup"" WHERE ""PrefixID"" = ? AND ""Path"" = ?) ""A"" CROSS JOIN ""FilesetEntry"" ""B"" WHERE ""A"".""ID"" = ""B"".""FileID"" AND ""B"".""FilesetID"" = ?";
-            m_selectfilelastmodifiedCommand.AddParameters(2);
+            m_selectfilelastmodifiedCommand.AddParameters(3);
 
             //Need a temporary table with path/lastmodified lookups
             m_findfileCommand.CommandText = 
@@ -461,7 +461,7 @@ namespace Duplicati.Library.Main.Database
 
         public long GetFileLastModified(long prefixid, string path, long filesetid, out DateTime oldModified, System.Data.IDbTransaction transaction = null)
         {
-			m_selectfileHashCommand.Transaction = transaction;
+            m_selectfilelastmodifiedCommand.Transaction = transaction;
             m_selectfilelastmodifiedCommand.SetParameterValue(0, prefixid);
 			m_selectfilelastmodifiedCommand.SetParameterValue(1, path);
             m_selectfilelastmodifiedCommand.SetParameterValue(2, filesetid);
