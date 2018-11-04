@@ -274,8 +274,8 @@ namespace Duplicati.Library.Backend
         {
             if (string.IsNullOrEmpty(bucketname))
                 return false;
-            else
-                return Amazon.S3.Util.AmazonS3Util.ValidateV2Bucket(bucketname);
+
+            return Amazon.S3.Util.AmazonS3Util.ValidateV2Bucket(bucketname);
         }
 
         #region IBackend Members
@@ -299,7 +299,7 @@ namespace Duplicati.Library.Backend
         {
             try
             {
-                return ListWithouExceptionCatch();
+                return ListWithoutExceptionCatch();
             }
             catch (Exception ex)
             {
@@ -312,15 +312,15 @@ namespace Duplicati.Library.Backend
             }
         }
 
-        private IEnumerable<IFileEntry> ListWithouExceptionCatch()
+        private IEnumerable<IFileEntry> ListWithoutExceptionCatch()
         {
-            foreach (IFileEntry file in Connection.ListBucket(m_bucket, m_prefix))
+            foreach (FileEntry file in Connection.ListBucket(m_bucket, m_prefix))
             {
-                ((FileEntry)file).Name = file.Name.Substring(m_prefix.Length);
+                file.Name = file.Name.Substring(m_prefix.Length);
 
                 //Fix for a bug in Duplicati 1.0 beta 3 and earlier, where filenames are incorrectly prefixed with a slash
                 if (file.Name.StartsWith("/", StringComparison.Ordinal) && !m_prefix.StartsWith("/", StringComparison.Ordinal))
-                    ((FileEntry)file).Name = file.Name.Substring(1);
+                    file.Name = file.Name.Substring(1);
 
                 yield return file;
             }
@@ -424,7 +424,6 @@ namespace Duplicati.Library.Backend
                 };
 
                 return normal.Union(exts).ToList();
-
             }
         }
 
@@ -462,8 +461,7 @@ namespace Duplicati.Library.Backend
 
         public void Dispose()
         {
-            if (m_options != null)
-                m_options = null;
+            m_options = null;
             if (m_wrapper != null)
             {
                 m_wrapper.Dispose();
