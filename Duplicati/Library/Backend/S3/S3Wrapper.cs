@@ -70,7 +70,7 @@ namespace Duplicati.Library.Backend
                     Logging.Log.WriteWarningMessage(LOGTAG, "UnsupportedOption", null, "Unsupported option: {0}", opt);
             }
 
-            m_client = new Amazon.S3.AmazonS3Client(awsID, awsKey, cfg);
+            m_client = new AmazonS3Client(awsID, awsKey, cfg);
 
             m_locationConstraint = locationConstraint;
             m_storageClass = storageClass;
@@ -79,11 +79,11 @@ namespace Duplicati.Library.Backend
 
         public void AddBucket(string bucketName)
         {
-            PutBucketRequest request = new PutBucketRequest();
-            request.BucketName = bucketName;
-
-            if (!string.IsNullOrEmpty(m_locationConstraint))
-                request.BucketRegionName = m_locationConstraint;
+            PutBucketRequest request = new PutBucketRequest
+            {
+                BucketName = bucketName,
+                BucketRegionName = m_locationConstraint
+            };
 
             m_client.PutBucket(request);
         }
@@ -130,9 +130,11 @@ namespace Duplicati.Library.Backend
 
         public void DeleteObject(string bucketName, string keyName)
         {
-            DeleteObjectRequest objectDeleteRequest = new DeleteObjectRequest();
-            objectDeleteRequest.BucketName = bucketName;
-            objectDeleteRequest.Key = keyName;
+            DeleteObjectRequest objectDeleteRequest = new DeleteObjectRequest
+            {
+                BucketName = bucketName,
+                Key = keyName
+            };
 
             m_client.DeleteObject(objectDeleteRequest);
         }
@@ -181,11 +183,13 @@ namespace Duplicati.Library.Backend
 
         public void RenameFile(string bucketName, string source, string target)
         {
-            CopyObjectRequest copyObjectRequest = new CopyObjectRequest();
-            copyObjectRequest.SourceBucket = bucketName;
-            copyObjectRequest.SourceKey = source;
-            copyObjectRequest.DestinationBucket = bucketName;
-            copyObjectRequest.DestinationKey = target;
+            CopyObjectRequest copyObjectRequest = new CopyObjectRequest
+            {
+                SourceBucket = bucketName,
+                SourceKey = source,
+                DestinationBucket = bucketName,
+                DestinationKey = target
+            };
 
             m_client.CopyObject(copyObjectRequest);
 
