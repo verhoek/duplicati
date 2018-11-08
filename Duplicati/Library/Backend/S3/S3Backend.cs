@@ -143,9 +143,6 @@ namespace Duplicati.Library.Backend
 
         private Dictionary<string, string> m_options;
 
-        private S3Wrapper m_wrapper;
-
-
         public S3()
         {
         }
@@ -272,7 +269,7 @@ namespace Duplicati.Library.Backend
             if (!hasForcePathStyle && !DEFAULT_S3_LOCATION_BASED_HOSTS.Any(x => string.Equals(x.Value, host, StringComparison.OrdinalIgnoreCase)) && !string.Equals(host, "s3.amazonaws.com", StringComparison.OrdinalIgnoreCase))
                 options["s3-ext-forcepathstyle"] = "true";
 
-            m_wrapper = new S3Wrapper(awsID, awsKey, locationConstraint, host, storageClass, useSSL, options);
+            Connection = new S3Wrapper(awsID, awsKey, locationConstraint, host, storageClass, useSSL, options);
         }
 
         public static bool IsValidHostname(string bucketname)
@@ -467,23 +464,20 @@ namespace Duplicati.Library.Backend
         public void Dispose()
         {
             m_options = null;
-            if (m_wrapper != null)
+            if (Connection != null)
             {
-                m_wrapper.Dispose();
-                m_wrapper = null;
+                Connection.Dispose();
+                Connection = null;
             }
         }
 
         #endregion
 
-        private S3Wrapper Connection
-        {
-            get { return m_wrapper; }
-        }
+        private S3Wrapper Connection { get; set; }
 
         public string[] DNSName
         {
-            get { return new string[] { m_wrapper.DNSHost }; }
+            get { return new string[] { Connection.DNSHost }; }
         }
 
         private string GetFullKey(string name)
