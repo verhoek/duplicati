@@ -118,10 +118,12 @@ namespace Duplicati.Library.Backend
 
         public virtual void AddFileStream(string bucketName, string keyName, System.IO.Stream source)
         {
-            PutObjectRequest objectAddRequest = new PutObjectRequest();
-            objectAddRequest.BucketName = bucketName;
-            objectAddRequest.Key = keyName;
-            objectAddRequest.InputStream = source;
+            PutObjectRequest objectAddRequest = new PutObjectRequest
+            {
+                BucketName = bucketName,
+                Key = keyName,
+                InputStream = source
+            };
             if (!string.IsNullOrWhiteSpace(m_storageClass))
                 objectAddRequest.StorageClass = new S3StorageClass(m_storageClass);
 
