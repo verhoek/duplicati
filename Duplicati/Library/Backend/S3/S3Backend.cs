@@ -1,21 +1,21 @@
 #region Disclaimer / License
 // Copyright (C) 2015, The Duplicati Team
 // http://www.duplicati.com, info@duplicati.com
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-// 
+//
 #endregion
 using System;
 using System.Linq;
@@ -117,8 +117,8 @@ namespace Duplicati.Library.Backend
         /// <returns>The storage classes.</returns>
         private static IEnumerable<KeyValuePair<string, string>> ReadStorageClasses()
         {
-            foreach(var f in typeof(Amazon.S3.S3StorageClass).GetFields(System.Reflection.BindingFlags.Static | 
-                                                                        System.Reflection.BindingFlags.DeclaredOnly | 
+            foreach(var f in typeof(Amazon.S3.S3StorageClass).GetFields(System.Reflection.BindingFlags.Static |
+                                                                        System.Reflection.BindingFlags.DeclaredOnly |
                                                                         System.Reflection.BindingFlags.Public))
             {
                 if (f.FieldType != typeof(Amazon.S3.S3StorageClass))
@@ -134,8 +134,8 @@ namespace Duplicati.Library.Backend
             }
         }
 
-        private readonly string m_bucket;
-        private readonly string m_prefix;
+        private string m_bucket;
+        private string m_prefix;
 
         public const string DEFAULT_S3_HOST  = "s3.amazonaws.com";
         public const string S3_EU_REGION_NAME = "eu-west-1";
@@ -152,7 +152,7 @@ namespace Duplicati.Library.Backend
         {
             var uri = new Utility.Uri(url);
             uri.RequireHost();
-            
+
             string host = uri.Host;
             m_prefix = uri.Path;
 
@@ -198,7 +198,7 @@ namespace Duplicati.Library.Backend
 
             string s3host;
             options.TryGetValue(SERVER_NAME, out s3host);
-            if (string.IsNullOrEmpty(s3host)) 
+            if (string.IsNullOrEmpty(s3host))
             {
                 s3host = DEFAULT_S3_HOST;
 
@@ -212,50 +212,7 @@ namespace Duplicati.Library.Backend
                         }
             }
 
-            //Fallback to previous formats
-            if (host.Contains(DEFAULT_S3_HOST))
-            {
-                Uri u = new Uri(url);
-                host = u.Host;
-                m_prefix = "";
-
-                if (String.Equals(host, s3host, StringComparison.OrdinalIgnoreCase))
-                {
-                    m_bucket = Library.Utility.Uri.UrlDecode(u.PathAndQuery);
-
-                    if (m_bucket.StartsWith("/", StringComparison.Ordinal))
-                        m_bucket = m_bucket.Substring(1);
-
-                    if (m_bucket.Contains("/"))
-                    {
-                        m_prefix = m_bucket.Substring(m_bucket.IndexOf("/", StringComparison.Ordinal) + 1);
-                        m_bucket = m_bucket.Substring(0, m_bucket.IndexOf("/", StringComparison.Ordinal));
-                    }
-                }
-                else
-                {
-                    //Subdomain type lookup
-                    if (host.EndsWith("." + s3host, StringComparison.OrdinalIgnoreCase))
-                    {
-                        m_bucket = host.Substring(0, host.Length - ("." + s3host).Length);
-                        host = s3host;
-                        m_prefix = Library.Utility.Uri.UrlDecode(u.PathAndQuery);
-
-                        if (m_prefix.StartsWith("/", StringComparison.Ordinal))
-                            m_prefix = m_prefix.Substring(1);
-                    }
-                    else
-                        throw new UserInformationException(Strings.S3Backend.UnableToDecodeBucketnameError(url), "S3CannotDecodeBucketName");
-                }
-
-                Logging.Log.WriteWarningMessage(LOGTAG, "DeprecatedS3Format", null, Strings.S3Backend.DeprecatedUrlFormat("s3://" + m_bucket + "/" + m_prefix)); 
-            }
-            else
-            {
-                //The new simplified url style s3://bucket/prefix
-                m_bucket = host;
-                host = s3host;
-            }
+            DetermineBucketAndPrefix(url, host, s3host);
 
             m_options = options;
             m_prefix = m_prefix.Trim();
@@ -270,6 +227,51 @@ namespace Duplicati.Library.Backend
                 options["s3-ext-forcepathstyle"] = "true";
 
             Connection = new S3Wrapper(awsID, awsKey, locationConstraint, host, storageClass, useSSL, options);
+        }
+
+        private void DetermineBucketAndPrefix(string url, string host, string s3host)
+        {
+            if (!host.Contains(DEFAULT_S3_HOST))
+            {
+                //The new simplified url style s3://bucket/prefix
+                m_bucket = host;
+                host = s3host;
+                return;
+            }
+
+            //Fallback to previous formats
+            Uri u = new Uri(url);
+            host = u.Host;
+            m_prefix = "";
+
+            if (String.Equals(host, s3host, StringComparison.OrdinalIgnoreCase))
+            {
+                m_bucket = Utility.Uri.UrlDecode(u.PathAndQuery);
+
+                if (m_bucket.StartsWith("/", StringComparison.Ordinal))
+                    m_bucket = m_bucket.Substring(1);
+
+                if (m_bucket.Contains("/"))
+                {
+                    var i = m_bucket.IndexOf("/", StringComparison.Ordinal);
+                    m_prefix = m_bucket.Substring(i + 1);
+                    m_bucket = m_bucket.Substring(0, i);
+                }
+            }
+            else if (host.EndsWith("." + s3host, StringComparison.OrdinalIgnoreCase))
+            {
+                m_bucket = host.Substring(0, host.Length - ("." + s3host).Length);
+                host = s3host;
+                m_prefix = Utility.Uri.UrlDecode(u.PathAndQuery);
+
+                if (m_prefix.StartsWith("/", StringComparison.Ordinal))
+                    m_prefix = m_prefix.Substring(1);
+            } else {
+                throw new UserInformationException(Strings.S3Backend.UnableToDecodeBucketnameError(url), "S3CannotDecodeBucketName");
+            }
+
+            Logging.Log.WriteWarningMessage(LOGTAG, "DeprecatedS3Format", null,
+                                            Strings.S3Backend.DeprecatedUrlFormat("s3://" + m_bucket + "/" + m_prefix));
         }
 
         public static bool IsValidHostname(string bucketname)
@@ -400,10 +402,10 @@ namespace Duplicati.Library.Backend
 
                 var defaults = new Amazon.S3.AmazonS3Config();
 
-                var exts = 
+                var exts =
                     typeof(Amazon.S3.AmazonS3Config).GetProperties().Where(x => x.CanRead && x.CanWrite && (x.PropertyType == typeof(string) || x.PropertyType == typeof(bool) || x.PropertyType == typeof(int) || x.PropertyType == typeof(long) || x.PropertyType.IsEnum))
                         .Select(x => (ICommandLineArgument)new CommandLineArgument(
-                            "s3-ext-" + x.Name.ToLowerInvariant(), 
+                            "s3-ext-" + x.Name.ToLowerInvariant(),
                             x.PropertyType == typeof(bool) ? CommandLineArgument.ArgumentType.Boolean : x.PropertyType.IsEnum ? CommandLineArgument.ArgumentType.Enumeration : CommandLineArgument.ArgumentType.String,
                             x.Name,
                             string.Format("Extended option {0}", x.Name),
