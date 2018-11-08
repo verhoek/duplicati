@@ -117,14 +117,19 @@ namespace Duplicati.Library.Backend
         /// <returns>The storage classes.</returns>
         private static IEnumerable<KeyValuePair<string, string>> ReadStorageClasses()
         {
-            foreach(var f in typeof(Amazon.S3.S3StorageClass).GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly | System.Reflection.BindingFlags.Public))
+            foreach(var f in typeof(Amazon.S3.S3StorageClass).GetFields(System.Reflection.BindingFlags.Static | 
+                                                                        System.Reflection.BindingFlags.DeclaredOnly | 
+                                                                        System.Reflection.BindingFlags.Public))
             {
-                if (f.FieldType == typeof(Amazon.S3.S3StorageClass))
+                if (f.FieldType != typeof(Amazon.S3.S3StorageClass))
+                {
+                    continue;
+                }
+                var prop = f.GetValue(null) as Amazon.S3.S3StorageClass;
+                if (prop != null && prop.Value != null)
                 {
                     var name = new Regex("([a-z])([A-Z])").Replace(f.Name, "$1 $2");
-                    var prop = f.GetValue(null) as Amazon.S3.S3StorageClass;
-                    if (prop != null && prop.Value != null)
-                        yield return new KeyValuePair<string, string>(name, prop.Value);
+                    yield return new KeyValuePair<string, string>(name, prop.Value);
                 }
             }
         }
