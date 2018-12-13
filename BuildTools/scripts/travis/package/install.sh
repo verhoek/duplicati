@@ -20,9 +20,6 @@ function install_docker () {
    apt-get update && apt-get install -y docker-ce
 }
 
-travis_mark_begin "PREPARING FOR DEPLOY"
+travis_mark_begin "PREPARING FOR PACKAGING"
 install_docker
-travis_mark_end "PREPARING FOR DEPLOY"
-
-
-#apt-get install -y git
+travis_mark_end "PREPARING FOR PACKAGING"

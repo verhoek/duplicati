@@ -58,6 +58,22 @@ function get_keyfile_password () {
 	fi
 }
 
+function set_gpg_data () {
+	if [ $SIGNED != true ]; then
+		return
+	fi
+
+	get_keyfile_password
+
+	GPGDATA=$(mono "BuildTools/AutoUpdateBuilder/bin/Debug/SharpAESCrypt.exe" d "${KEYFILE_PASSWORD}" "${GPG_KEYFILE}")
+	if [ ! $? -eq 0 ]; then
+		echo "Decrypting GPG keyfile failed"
+		exit 1
+	fi
+	GPGID=$(echo "${GPGDATA}" | head -n 1)
+	GPGKEY=$(echo "${GPGDATA}" | head -n 2 | tail -n 1)
+}
+
 function sign_with_authenticode () {
 	if [ ! -f "${AUTHENTICODE_PFXFILE}" ] || [ ! -f "${AUTHENTICODE_PASSWORD}" ]; then
 		echo "Skipped authenticode signing as files are missing"

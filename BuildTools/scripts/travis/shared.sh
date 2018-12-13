@@ -1,4 +1,3 @@
-
 # duplicati root is relative to the stage dirs
 DUPLICATI_ROOT="$( cd "$(dirname "$0")" ; pwd -P )/../../../../"
 
@@ -46,10 +45,10 @@ function test_in_docker() {
     mono_docker "./BuildTools/scripts/travis/unittest/install.sh;./BuildTools/scripts/travis/unittest/test.sh $TEST_CATEGORIES $TEST_DATA"
 }
 
-function deploy_in_docker() {
-    mono_docker "./BuildTools/scripts/travis/deploy/install.sh;\
-    ./BuildTools/scripts/travis/deploy/package.sh $FORWARD_OPTS;\
-    ./BuildTools/scripts/travis/deploy/installers.sh $FORWARD_OPTS"
+function package_in_docker() {
+    mono_docker "./BuildTools/scripts/travis/package/install.sh;\
+    ./BuildTools/scripts/travis/package/build-zip.sh $FORWARD_OPTS;\
+    ./BuildTools/scripts/travis/package/installers.sh $FORWARD_OPTS"
 }
 
 function build_in_docker () {
@@ -72,7 +71,7 @@ function restore_build_to_cache () {
 }
 
 function mono_docker () {
-  docker run -e WORKING_DIR="$WORKING_DIR" -v /var/run/docker.sock:/var/run/docker.sock -v "${WORKING_DIR}:/duplicati" --rm mono /bin/bash -c "cd /duplicati;$1"
+  docker run -e WORKING_DIR="$WORKING_DIR" -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker/tmp:/var/lib/docker/tmp -v "${WORKING_DIR}:/duplicati" --rm mono /bin/bash -c "cd /duplicati;$1"
 }
 
 function parse_options () {
@@ -82,7 +81,6 @@ function parse_options () {
   RELEASE_VERSION="2.0.4.$(cat "$DUPLICATI_ROOT"/Updates/build_version.txt)"
   RELEASE_TYPE="canary"
   SIGNED=false
-  INSTALLERS="fedora" #,debian,fedora,synology,docker" #osx,windows"
 
   while true ; do
       case "$1" in
@@ -120,10 +118,6 @@ function parse_options () {
         TEST_CATEGORIES=$2
         shift
         ;;
-      --installers)
-	    	INSTALLERS="$2"
-		    shift
-        ;;
       --* | -* )
         echo "unknown option $1, please use --help."
         exit 1
@@ -142,4 +136,7 @@ function parse_options () {
   RELEASE_FILE_NAME="duplicati-${RELEASE_NAME}"
 	UPDATE_SOURCE="${DUPLICATI_ROOT}/Updates/build/${RELEASE_TYPE}_source-${RELEASE_VERSION}"
   UPDATE_TARGET="${DUPLICATI_ROOT}/Updates/build/${RELEASE_TYPE}_target-${RELEASE_VERSION}"
+  ZIPFILE="${UPDATE_TARGET}/${RELEASE_FILE_NAME}.zip"
+  BUILDTAG_RAW=$(echo "${RELEASE_FILE_NAME}" | cut -d "." -f 1-4 | cut -d "-" -f 2-4)
+  BUILDTAG="${BUILDTAG_RAW//-}"
 }

@@ -20,7 +20,6 @@ function sign_binaries_with_authenticode  () {
 }
 
 function set_gpg_autoupdate_options () {
-
 	if [ $SIGNED != true ]
 	then
 		return
@@ -98,7 +97,7 @@ function prepare_update_source_folder () {
 
 
 parse_options "$@"
-travis_mark_begin "Building package"
+travis_mark_begin "BUILDING ZIP"
 echo "+ updating changelog" && update_changelog
 
 echo "+ updating versions in files" && update_version_files
@@ -111,4 +110,4 @@ echo "+ generating package zipfile" && eval generate_package $IF_QUIET_SUPPRESS_
 
 echo
 echo "= Built succesfully package delivered in: ${UPDATE_TARGET}"
-travis_mark_end "Building package"
+travis_mark_end "BUILDING ZIP"
