@@ -1,6 +1,8 @@
 ARG ARCH=
 FROM ${ARCH}mono:5-slim
 
+COPY qemu-arm-static /usr/bin
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
@@ -20,11 +22,6 @@ ENTRYPOINT ["/usr/sbin/tini", "--"]
 ENV XDG_CONFIG_HOME=/data
 VOLUME /data
 
-ARG WORKING_DIR=
-ENV WORKING_DIR $WORKING_DIR
-WORKDIR ${WORKING_DIR}
-RUN ls -al ${WORKING_DIR}
-RUN ls -alR /var/lib/docker/tmp/docker-*
 COPY context/duplicati-cli context/duplicati-server /usr/bin/
 RUN chmod 0755 /usr/bin/duplicati-cli /usr/bin/duplicati-server
 

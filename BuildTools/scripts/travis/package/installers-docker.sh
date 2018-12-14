@@ -14,6 +14,8 @@ function build_installer () {
 
     install_oem_files "${installer_dir}/" "${installer_dir}/${DIRNAME}"
 
+    cp -a /usr/bin/qemu-arm-static ${installer_dir}
+
     for arch in ${ARCHITECTURES}; do
         tags="linux-${arch}-${RELEASE_VERSION} linux-${arch}-${RELEASE_TYPE}"
         if [ ${RELEASE_TYPE} = ${DEFAULT_RELEASE_TYPE} ]; then
@@ -34,11 +36,11 @@ function build_installer () {
         docker build \
             ${args} \
             --build-arg ARCH=${arch}/ \
-            --build-arg WORKING_DIR=${WORKING_DIR}/BuildTools/Installer/Docker \
             --build-arg RELEASE_VERSION=${RELEASE_VERSION} \
             --build-arg RELEASE_TYPE=${RELEASE_TYPE} \
             --file "${installer_dir}"/context/Dockerfile \
-            .
+            ${installer_dir}
+
     done
 }
 

@@ -71,7 +71,8 @@ function restore_build_to_cache () {
 }
 
 function mono_docker () {
-  docker run -e WORKING_DIR="$WORKING_DIR" -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker/tmp:/var/lib/docker/tmp -v "${WORKING_DIR}:/duplicati" --rm mono /bin/bash -c "cd /duplicati;$1"
+  docker run -e WORKING_DIR="$WORKING_DIR" -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "${WORKING_DIR}:/duplicati" --rm mono /bin/bash -c "cd /duplicati;$1"
 }
 
 function parse_options () {

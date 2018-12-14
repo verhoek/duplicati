@@ -17,7 +17,7 @@ function install_docker () {
       "deb [arch=amd64] https://download.docker.com/linux/debian \
       $(lsb_release -cs) \
       stable"
-   apt-get update && apt-get install -y docker-ce
+   apt-get update && apt-get install -y docker-ce qemu-user qemu-user-static
 }
 
 travis_mark_begin "PREPARING FOR PACKAGING"
