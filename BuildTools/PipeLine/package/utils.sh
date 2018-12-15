@@ -19,30 +19,6 @@ function update_version_files() {
 	cp "${DUPLICATI_ROOT}/Updates/release_key.txt"  "${DUPLICATI_ROOT}/Duplicati/Library/AutoUpdater/AutoUpdateSignKey.txt"
 }
 
-function update_changelog () {
-	if [[ ! -f "${RELEASE_CHANGELOG_NEWS_FILE}" ]]; then
-		echo "  No updates to add to changelog found. Describe updates in ${RELEASE_CHANGELOG_NEWS_FILE}"
-		return
-	fi
-
-	RELEASE_CHANGEINFO_NEWS=$(cat "${RELEASE_CHANGELOG_NEWS_FILE}" 2>/dev/null)
-	if [ ! "x${RELEASE_CHANGEINFO_NEWS}" == "x" ]; then
-
-		echo "${RELEASE_TIMESTAMP} - ${RELEASE_NAME}" > "tmp_changelog.txt"
-		echo "==========" >> "tmp_changelog.txt"
-		echo "${RELEASE_CHANGEINFO_NEWS}" >> "tmp_changelog.txt"
-		echo >> "tmp_changelog.txt"
-		cat "${RELEASE_CHANGELOG_FILE}" >> "tmp_changelog.txt"
-		cp "tmp_changelog.txt" "${RELEASE_CHANGELOG_FILE}"
-		rm "tmp_changelog.txt"
-	fi
-
-	RELEASE_CHANGEINFO=$(cat ${RELEASE_CHANGELOG_FILE})
-	if [ "x${RELEASE_CHANGEINFO}" == "x" ]; then
-		echo "  Warning: No information in changelog file"
-	fi
-}
-
 function get_keyfile_password () {
 	if [ "z${KEYFILE_PASSWORD}" == "z" ]; then
 		echo -n "Enter keyfile password: "

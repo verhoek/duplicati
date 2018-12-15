@@ -1,4 +1,7 @@
 #!/bin/sh
+
+exit 0
+
 #
 # DMG building script adopted from:
 #   http://el-tramo.be/git/fancy-dmg/plain/Makefile

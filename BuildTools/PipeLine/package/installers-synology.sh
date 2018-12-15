@@ -3,40 +3,39 @@ SCRIPT_DIR="$( cd "$(dirname "$0")" ; pwd -P )"
 . "${SCRIPT_DIR}/utils.sh"
 
 function build_installer () {
-    DIRNAME=$(echo "${RELEASE_FILE_NAME}" | cut -d "_" -f 1)
     installer_dir="${DUPLICATI_ROOT}/BuildTools/Installer/Synology"
     DATE_STAMP=$(LANG=C date -R)
     BASE_FILE_NAME="${RELEASE_FILE_NAME%.*}"
-    TMPDIRNAME="${installer_dir}/${BASE_FILE_NAME}-extract"
+    TMPRELEASE_NAME_SIMPLE="${installer_dir}/${BASE_FILE_NAME}-extract"
 
     TIMESERVER="http://timestamp.synology.com/timestamp.php"
 
-    unzip -q -d "${installer_dir}/${DIRNAME}" "$ZIPFILE"
+    unzip -q -d "${installer_dir}/${RELEASE_NAME_SIMPLE}" "$ZIPFILE"
 
-    install_oem_files "${installer_dir}" "${DIRNAME}"
+    install_oem_files "${installer_dir}" "${RELEASE_NAME_SIMPLE}"
 
     # Remove items unused on the Synology platform
-    rm -rf ${installer_dir}/${DIRNAME}/win-tools
-    rm -rf ${installer_dir}/${DIRNAME}/SQLite/win64
-    rm -rf ${installer_dir}/${DIRNAME}/SQLite/win32
-    rm -rf ${installer_dir}/${DIRNAME}/MonoMac.dll
-    rm -rf ${installer_dir}/${DIRNAME}/alphavss
-    rm -rf ${installer_dir}/${DIRNAME}/OSX\ Icons
-    rm -rf ${installer_dir}/${DIRNAME}/OSXTrayHost
-    rm -rf ${installer_dir}/${DIRNAME}/AlphaFS.dll
-    rm -rf ${installer_dir}/${DIRNAME}/AlphaVSS.Common.dll
-    rm -rf ${installer_dir}/${DIRNAME}/licenses/alphavss
-    rm -rf ${installer_dir}/${DIRNAME}/licenses/MonoMac
-    rm -rf ${installer_dir}/${DIRNAME}/licenses/gpg
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/win-tools
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/SQLite/win64
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/SQLite/win32
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/MonoMac.dll
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/alphavss
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/OSX\ Icons
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/OSXTrayHost
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/AlphaFS.dll
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/AlphaVSS.Common.dll
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/licenses/alphavss
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/licenses/MonoMac
+    rm -rf ${installer_dir}/${RELEASE_NAME_SIMPLE}/licenses/gpg
 
     # Install extra items for Synology
-    cp -R ${installer_dir}/web-extra/* ${installer_dir}/${DIRNAME}/webroot/
-    cp ${installer_dir}/dsm.duplicati.conf ${installer_dir}/${DIRNAME}
+    cp -R ${installer_dir}/web-extra/* ${installer_dir}/${RELEASE_NAME_SIMPLE}/webroot/
+    cp ${installer_dir}/dsm.duplicati.conf ${installer_dir}/${RELEASE_NAME_SIMPLE}
 
     DIRSIZE_KB=$(BLOCKSIZE=1024 du -s | cut -d '.' -f 1)
     let "DIRSIZE=DIRSIZE_KB*1024"
 
-    tar cf ${installer_dir}/package.tgz -C "${installer_dir}/${DIRNAME}" "${installer_dir}/${DIRNAME}"/*
+    tar cf ${installer_dir}/package.tgz -C "${installer_dir}/${RELEASE_NAME_SIMPLE}" "${installer_dir}/${RELEASE_NAME_SIMPLE}"/*
 
     ICON_72=$(openssl base64 -A -in "${installer_dir}"/PACKAGE_ICON.PNG)
     ICON_256=$(openssl base64 -A -in "${installer_dir}"/PACKAGE_ICON_256.PNG)
@@ -59,24 +58,24 @@ function build_installer () {
 
     if [ "z${GPGID}" != "z" ]; then
         # Now codesign the spk file
-        mkdir "${TMPDIRNAME}"
-        tar xf "${BASE_FILE_NAME}.spk" -C "${TMPDIRNAME}"
+        mkdir "${TMPRELEASE_NAME_SIMPLE}"
+        tar xf "${BASE_FILE_NAME}.spk" -C "${TMPRELEASE_NAME_SIMPLE}"
         # Sort on macOS does not have -V / --version-sort
         # https://stackoverflow.com/questions/4493205/unix-sort-of-version-numbers
         SORT_OPTIONS="-t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n"
 
-        cat $(find ${TMPDIRNAME} -type f | sort ${SORT_OPTIONS}) > "${BASE_FILE_NAME}.spk.tmp"
+        cat $(find ${TMPRELEASE_NAME_SIMPLE} -type f | sort ${SORT_OPTIONS}) > "${BASE_FILE_NAME}.spk.tmp"
 
         gpg2 --ignore-time-conflict --ignore-valid-from --yes --batch --armor --detach-sign --default-key="${GPGID}" --output "${BASE_FILE_NAME}.signature" "${BASE_FILE_NAME}.spk.tmp"
         rm "${BASE_FILE_NAME}.spk.tmp"
 
-        curl --silent --form "file=@${BASE_FILE_NAME}.signature" "${TIMESERVER}" > "${TMPDIRNAME}/syno_signature.asc"
+        curl --silent --form "file=@${BASE_FILE_NAME}.signature" "${TIMESERVER}" > "${TMPRELEASE_NAME_SIMPLE}/syno_signature.asc"
         rm "${BASE_FILE_NAME}.signature"
 
         rm "${BASE_FILE_NAME}.spk"
-        tar cf "${BASE_FILE_NAME}.spk" -C "${TMPDIRNAME}" $(ls -1 ${TMPDIRNAME})
+        tar cf "${BASE_FILE_NAME}.spk" -C "${TMPRELEASE_NAME_SIMPLE}" $(ls -1 ${TMPRELEASE_NAME_SIMPLE})
 
-        rm -rf "${TMPDIRNAME}"
+        rm -rf "${TMPRELEASE_NAME_SIMPLE}"
     fi
 
     mv "${installer_dir}/${BASE_FILE_NAME}.spk" "${UPDATE_TARGET}"

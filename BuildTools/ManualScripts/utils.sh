@@ -1,4 +1,27 @@
-#!/bin/bash
+
+function update_changelog () {
+	if [[ ! -f "${RELEASE_CHANGELOG_NEWS_FILE}" ]]; then
+		echo "  No updates to add to changelog found. Describe updates in ${RELEASE_CHANGELOG_NEWS_FILE}"
+		return
+	fi
+
+	RELEASE_CHANGEINFO_NEWS=$(cat "${RELEASE_CHANGELOG_NEWS_FILE}" 2>/dev/null)
+	if [ ! "x${RELEASE_CHANGEINFO_NEWS}" == "x" ]; then
+
+		echo "${RELEASE_TIMESTAMP} - ${RELEASE_NAME}" > "tmp_changelog.txt"
+		echo "==========" >> "tmp_changelog.txt"
+		echo "${RELEASE_CHANGEINFO_NEWS}" >> "tmp_changelog.txt"
+		echo >> "tmp_changelog.txt"
+		cat "${RELEASE_CHANGELOG_FILE}" >> "tmp_changelog.txt"
+		cp "tmp_changelog.txt" "${RELEASE_CHANGELOG_FILE}"
+		rm "tmp_changelog.txt"
+	fi
+
+	RELEASE_CHANGEINFO=$(cat ${RELEASE_CHANGELOG_FILE})
+	if [ "x${RELEASE_CHANGEINFO}" == "x" ]; then
+		echo "  Warning: No information in changelog file"
+	fi
+}
 
 
 function update_git_repo () {
@@ -12,14 +35,3 @@ function update_git_repo () {
 	git push --tags
 }
 
-
-
-SCRIPT_DIR="$( cd "$(dirname "$0")" ; pwd -P )"
-. "${SCRIPT_DIR}/shared.sh"
-
-
-TRAVIS_BUILD_DIR="${SCRIPT_DIR}/../../../"
-BUILD_CACHE="${TRAVIS_BUILD_DIR}/../.cache"
-#${TRAVIS_BUILD_DIR}/BuildTools/scripts/travis/build/wrapper.sh --repodir "${TRAVIS_BUILD_DIR}" --cache "$BUILD_CACHE"
-# ${TRAVIS_BUILD_DIR}/BuildTools/scripts/travis/unittest/wrapper.sh --categories BulkNormal --data data.zip --cache "$BUILD_CACHE" --testdir "$TEST_DIR"
-${TRAVIS_BUILD_DIR}/BuildTools/scripts/travis/package/wrapper.sh --cache "$BUILD_CACHE"

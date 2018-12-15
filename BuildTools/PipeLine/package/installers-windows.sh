@@ -1,3 +1,6 @@
+
+exit 0
+
 # function build_windows_installer () {
 # 	# Pre-boot virtual machine
 # 	echo "Booting Win10 build instance"

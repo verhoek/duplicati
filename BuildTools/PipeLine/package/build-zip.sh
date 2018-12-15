@@ -98,8 +98,6 @@ function prepare_update_source_folder () {
 
 parse_options "$@"
 travis_mark_begin "BUILDING ZIP"
-echo "+ updating changelog" && update_changelog
-
 echo "+ updating versions in files" && update_version_files
 
 echo "+ copying binaries for packaging" && prepare_update_source_folder

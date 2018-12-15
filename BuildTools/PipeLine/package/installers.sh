@@ -38,10 +38,7 @@ function sign_with_gpg () {
 parse_options "$@"
 
 for installer_script in $(ls $SCRIPT_DIR/installers-*.sh); do
-	echo $installer_script
-	if [[ $installer_script =~ "docker" ]]; then
-		$installer_script
-	fi
+	$installer_script
 done
 
 

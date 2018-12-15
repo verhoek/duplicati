@@ -27,9 +27,11 @@ RUN chmod 0755 /usr/bin/duplicati-cli /usr/bin/duplicati-server
 
 ARG RELEASE_TYPE=
 ARG RELEASE_VERSION=
+ARG RELEASE_NAME_SIMPLE=
 ENV DUPLICATI_CHANNEL=${RELEASE_TYPE}
 ENV DUPLICATI_VERSION=${RELEASE_VERSION}
-COPY duplicati /opt/duplicati
+ENV RELEASE_NAME_SIMPLE ${RELEASE_NAME_SIMPLE}
+COPY ${RELEASE_NAME_SIMPLE} /opt/duplicati
 
 EXPOSE 8200
 CMD ["/usr/bin/duplicati-server", "--webservice-port=8200", "--webservice-interface=any"]

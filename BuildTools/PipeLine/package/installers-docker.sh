@@ -8,11 +8,10 @@ function build_installer () {
     DEFAULT_ARCHITECTURE=amd64
     DEFAULT_RELEASE_TYPE=beta
     REPOSITORY=duplicati/duplicati
-    DIRNAME="duplicati"
 
-    unzip -qd "${installer_dir}/${DIRNAME}" "$ZIPFILE"
+    unzip -qd "${installer_dir}/${RELEASE_NAME_SIMPLE}" "$ZIPFILE"
 
-    install_oem_files "${installer_dir}/" "${installer_dir}/${DIRNAME}"
+    install_oem_files "${installer_dir}/" "${installer_dir}/${RELEASE_NAME_SIMPLE}"
 
     cp -a /usr/bin/qemu-arm-static ${installer_dir}
 
@@ -38,9 +37,9 @@ function build_installer () {
             --build-arg ARCH=${arch}/ \
             --build-arg RELEASE_VERSION=${RELEASE_VERSION} \
             --build-arg RELEASE_TYPE=${RELEASE_TYPE} \
+            --build-arg RELEASE_NAME_SIMPLE=${RELEASE_NAME_SIMPLE} \
             --file "${installer_dir}"/context/Dockerfile \
             ${installer_dir}
-
     done
 }
 

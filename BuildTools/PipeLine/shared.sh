@@ -1,5 +1,5 @@
 # duplicati root is relative to the stage dirs
-DUPLICATI_ROOT="$( cd "$(dirname "$0")" ; pwd -P )/../../../../"
+DUPLICATI_ROOT="$( cd "$(dirname "$0")" ; pwd -P )/../../../"
 
 function quit_on_error() {
   local parent_lineno="$1"
@@ -42,17 +42,17 @@ function load_mono () {
 }
 
 function test_in_docker() {
-    mono_docker "./BuildTools/scripts/travis/unittest/install.sh;./BuildTools/scripts/travis/unittest/test.sh $TEST_CATEGORIES $TEST_DATA"
+    mono_docker "./BuildTools/PipeLine/unittest/install.sh;./BuildTools/PipeLine/unittest/test.sh $TEST_CATEGORIES $TEST_DATA"
 }
 
 function package_in_docker() {
-    mono_docker "./BuildTools/scripts/travis/package/install.sh;\
-    ./BuildTools/scripts/travis/package/build-zip.sh $FORWARD_OPTS;\
-    ./BuildTools/scripts/travis/package/installers.sh $FORWARD_OPTS"
+    mono_docker "./BuildTools/PipeLine/package/install.sh;\
+    ./BuildTools/PipeLine/package/build-zip.sh $FORWARD_OPTS;\
+    ./BuildTools/PipeLine/package/installers.sh $FORWARD_OPTS"
 }
 
 function build_in_docker () {
-    mono_docker "./BuildTools/scripts/travis/build/install.sh $FORWARD_OPTS;./BuildTools/scripts/travis/build/build.sh $FORWARD_OPTS"
+    mono_docker "./BuildTools/PipeLine/build/install.sh $FORWARD_OPTS;./BuildTools/PipeLine/build/build.sh $FORWARD_OPTS"
 }
 
 function setup_cache () {
@@ -135,6 +135,7 @@ function parse_options () {
   RELEASE_TIMESTAMP=$(date +%Y-%m-%d)
   RELEASE_NAME="${RELEASE_VERSION}_${RELEASE_TYPE}_${RELEASE_TIMESTAMP}"
   RELEASE_FILE_NAME="duplicati-${RELEASE_NAME}"
+  RELEASE_NAME_SIMPLE="duplicati-${RELEASE_VERSION}"
 	UPDATE_SOURCE="${DUPLICATI_ROOT}/Updates/build/${RELEASE_TYPE}_source-${RELEASE_VERSION}"
   UPDATE_TARGET="${DUPLICATI_ROOT}/Updates/build/${RELEASE_TYPE}_target-${RELEASE_VERSION}"
   ZIPFILE="${UPDATE_TARGET}/${RELEASE_FILE_NAME}.zip"
