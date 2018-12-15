@@ -68,12 +68,12 @@ Provides:	duplicati
 Provides:	duplicati-cli
 Provides:	duplicati-server
 
-%description 
+%description
 Duplicati is a free backup client that securely stores encrypted,
 incremental, compressed backups on cloud storage services and remote file
 servers.  It supports targets like Amazon S3, Windows Live SkyDrive,
 Rackspace Cloud Files or WebDAV, SSH, FTP (and many more).
- 
+
 Duplicati has built-in AES-256 encryption and backups be can signed using
 GNU Privacy Guard.  A built-in scheduler makes sure that backups are always
 up-to-date.  Last but not least, Duplicati provides various options and

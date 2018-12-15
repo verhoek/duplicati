@@ -60,7 +60,7 @@ jobs:
     #       access_key: $SAUCE_ACCESS_KEY
     - stage: create zip
       script:
-        - ./BuildTools/PipeLine/create_zip/wrapper.sh --cache "$BUILD_CACHE" | ts
+        - ./BuildTools/PipeLine/create_zip/wrapper.sh | ts
     - stage: create installers
       script:
         - ./BuildTools/PipeLine/create_installers/wrapper.sh --installers debian | ts
