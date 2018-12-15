@@ -20,12 +20,12 @@ env:
     - USAGEREPORTER_Duplicati_LEVEL=none
     - AUTOUPDATER_Duplicati_SKIP_UPDATE=1
     - TMPDIR=$HOME/tmp
-    - BUILD_CACHE=${TRAVIS_BUILD_DIR}/../.duplicati_build_cache
 cache:
   directories:
     # There is one cache per branch, so concurrent builds on different branches possible!
     # DO NOT SET ENVIRONMENT VARIABLES WITHIN JOBS, OR CACHES WILL NOT BE SHARED AMONGST JOBS!
-    - $BUILD_CACHE
+    - ${TRAVIS_BUILD_DIR}/../.duplicati_build_cache
+    - ${TRAVIS_BUILD_DIR}/../.duplicati_zip_cache
     - $HOME/download/
 
 # matrix expansion within jobs would be good:
