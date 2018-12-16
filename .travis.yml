@@ -35,22 +35,22 @@ jobs:
     - stage: build
     # DO NOT SET ENVIRONMENT VARIABLES WITHIN JOBS, OR CACHES WILL NOT BE SHARED AMONGST JOBS!
       script:
-          - ./BuildTools/PipeLine/build/wrapper.sh | ts
+          - ./BuildTools/PipeLine/stage_build/wrapper.sh | ts
     - stage: unit tests
       script:
-        - ./BuildTools/PipeLine/unittest/wrapper.sh --categories BulkNormal --data data.zip | ts
+        - ./BuildTools/PipeLine/stage_unittests/wrapper.sh --testcategories BulkNormal --testdata data.zip | ts
     - stage: unit tests
       script:
-        - ./BuildTools/PipeLine/unittest/wrapper.sh --categories BulkNoSize --data data.zip | ts
+        - ./BuildTools/PipeLine/stage_unittests/wrapper.sh --testcategories BulkNoSize --testdata data.zip | ts
     - stage: unit tests
       script:
-        - ./BuildTools/PipeLine/unittest/wrapper.sh --categories SVNDataLong,SVNData --data DSMCBE.zip |  ts
+        - ./BuildTools/PipeLine/stage_unittests/wrapper.sh --testcategories SVNDataLong,SVNData --testdata DSMCBE.zip |  ts
     - stage: unit tests
       script:
-        - ./BuildTools/PipeLine/unittest/wrapper.sh --categories Border | ts
+        - ./BuildTools/PipeLine/stage_unittests/wrapper.sh --testcategories Border | ts
     - stage: unit tests
       script:
-        - ./BuildTools/PipeLine/unittest/wrapper.sh --categories Filter,Targeted,Purge,Serialization,WebApi,Utility,UriUtility,IO | ts
+        - ./BuildTools/PipeLine/stage_unittests/wrapper.sh --testcategories Filter,Targeted,Purge,Serialization,WebApi,Utility,UriUtility,IO | ts
     # - stage: integration tests
     #   script:
     #     - ./BuildTools/PipeLine/integrationtest/wrapper.sh --cache "$BUILD_CACHE"
@@ -60,17 +60,17 @@ jobs:
     #       access_key: $SAUCE_ACCESS_KEY
     - stage: create archive
       script:
-        - ./BuildTools/PipeLine/create_zip/wrapper.sh | ts
+        - ./BuildTools/PipeLine/stage_createarchive/wrapper.sh | ts
     - stage: create installers
       script:
-        - ./BuildTools/PipeLine/create_installers/wrapper.sh --installers debian | ts
+        - ./BuildTools/PipeLine/stage_createinstallers/wrapper.sh --installers debian | ts
     - stage: create installers
       script:
-        - ./BuildTools/PipeLine/create_installers/wrapper.sh --installers fedora | ts
+        - ./BuildTools/PipeLine/stage_createinstallers/wrapper.sh --installers fedora | ts
     - stage: create installers
       script:
-        - ./BuildTools/PipeLine/create_installers/wrapper.sh --installers synology | ts
+        - ./BuildTools/PipeLine/stage_createinstallers/wrapper.sh --installers synology | ts
     - stage: create installers
       script:
-        - ./BuildTools/PipeLine/create_installers/wrapper.sh --installers docker | ts
+        - ./BuildTools/PipeLine/stage_createinstallers/wrapper.sh --installers docker | ts
 
