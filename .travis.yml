@@ -73,4 +73,6 @@ jobs:
     - stage: create installers
       script:
         - ./BuildTools/PipeLine/stage_createinstallers/wrapper.sh --installers docker | ts
-
+    - stage: deploy to aws
+      script:
+        - ./BuildTools/PipeLine/stage_deploy/wrapper.sh --awskeyid $AWS_ACCESS_KEY_ID --awssecret $AWS_SECRET_ACCESS_KEY --awsbucket $AWS_BUCKET_URI | ts
