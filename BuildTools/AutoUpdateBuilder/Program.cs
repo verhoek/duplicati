@@ -1,10 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace AutoUpdateBuilder
 {
     public class Program
     {
+        private static RSACryptoServiceProvider privkey;
+
+        private static string keyfile;
+        private static string keyfilepassword;
+
+        private static void CompareToManifestPublicKey()
+        {
+            if (Duplicati.Library.AutoUpdater.AutoUpdateSettings.SignKey == null || privkey.ToXmlString(false) != Duplicati.Library.AutoUpdater.AutoUpdateSettings.SignKey.ToXmlString(false))
+            {
+                Console.WriteLine("The public key in the project is not the same as the public key from the file");
+                Console.WriteLine("Try setting the key to: ");
+                Console.WriteLine(privkey.ToXmlString(false));
+                System.Environment.Exit(5);
+            }
+        }
+
+        private static void LoadKeyFromFile()
+        {
+            using (var enc = new Duplicati.Library.Encryption.AESEncryption(keyfilepassword, new Dictionary<string, string>()))
+            using (var ms = new System.IO.MemoryStream())
+            using (var fs = System.IO.File.OpenRead(keyfile))
+            {
+                enc.Decrypt(fs, ms);
+                ms.Position = 0;
+
+                using (var sr = new System.IO.StreamReader(ms))
+                    privkey.FromXmlString(sr.ReadToEnd());
+            }
+        }
+
+
         public static int Main(string[] _args)
         {
             var args = new List<string>(_args);
@@ -12,21 +44,21 @@ namespace AutoUpdateBuilder
 
             string inputfolder;
             string outputfolder;
-            string keyfile;
             string manifestfile;
-            string keyfilepassword;
-			string gpgkeyfile;
+            string gpgkeyfile;
 			string gpgpath;
+            string allowNewKey;
 
             opts.TryGetValue("input", out inputfolder);
             opts.TryGetValue("output", out outputfolder);
+            opts.TryGetValue("allow-new-key", out allowNewKey);
             opts.TryGetValue("keyfile", out keyfile);
             opts.TryGetValue("manifest", out manifestfile);
             opts.TryGetValue("keyfile-password", out keyfilepassword);
 			opts.TryGetValue("gpgkeyfile", out gpgkeyfile);
 			opts.TryGetValue("gpgpath", out gpgpath);
 
-			var usedoptions = new string[] { "input", "output", "keyfile", "manifest", "keyfile-password", "gpgkeyfile", "gpgpath" };
+			var usedoptions = new [] { "allow-new-key", "input", "output", "keyfile", "manifest", "keyfile-password", "gpgkeyfile", "gpgpath" };
 
             if (string.IsNullOrWhiteSpace(inputfolder))
             {
@@ -61,7 +93,7 @@ namespace AutoUpdateBuilder
             if (!System.IO.File.Exists(keyfile))
             {
                 Console.WriteLine("Keyfile not found, creating new");
-                var newkey = System.Security.Cryptography.RSACryptoServiceProvider.Create().ToXmlString(true);
+                var newkey = RSA.Create().ToXmlString(true);
                 using (var enc = new Duplicati.Library.Encryption.AESEncryption(keyfilepassword, new Dictionary<string, string>()))
                 using (var fs = System.IO.File.OpenWrite(keyfile))
                 using (var ms = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(newkey)))
@@ -71,29 +103,16 @@ namespace AutoUpdateBuilder
             if (!System.IO.Directory.Exists(outputfolder))
                 System.IO.Directory.CreateDirectory(outputfolder);
 
-            var privkey = (System.Security.Cryptography.RSACryptoServiceProvider)System.Security.Cryptography.RSACryptoServiceProvider.Create();
+            privkey = (RSACryptoServiceProvider) RSA.Create();
 
-            using(var enc = new Duplicati.Library.Encryption.AESEncryption(keyfilepassword, new Dictionary<string, string>()))
-            using(var ms = new System.IO.MemoryStream())
-            using(var fs = System.IO.File.OpenRead(keyfile))
+            LoadKeyFromFile();
+
+            if (!Boolean.TryParse(allowNewKey, out Boolean newKeyAllowed) || !newKeyAllowed)
             {
-                enc.Decrypt(fs, ms);
-                ms.Position = 0;
-
-                using(var sr = new System.IO.StreamReader(ms))
-                    privkey.FromXmlString(sr.ReadToEnd());
+                CompareToManifestPublicKey();
             }
 
-            if (Duplicati.Library.AutoUpdater.AutoUpdateSettings.SignKey == null || privkey.ToXmlString(false) != Duplicati.Library.AutoUpdater.AutoUpdateSettings.SignKey.ToXmlString(false))
-            {
-                Console.WriteLine("The public key in the project is not the same as the public key from the file");
-                Console.WriteLine("Try setting the key to: ");
-                Console.WriteLine(privkey.ToXmlString(false));
-                return 5;
-            }
-
-
-			string gpgkeyid = null;
+            string gpgkeyid = null;
 			string gpgkeypassphrase = null;
 
 			if (string.IsNullOrWhiteSpace(gpgkeyfile))
@@ -132,38 +151,44 @@ namespace AutoUpdateBuilder
             using (var jr = new Newtonsoft.Json.JsonTextReader(sr))
                 updateInfo = new Newtonsoft.Json.JsonSerializer().Deserialize<Duplicati.Library.AutoUpdater.UpdateInfo>(jr);
 
-
             var isopts = new Dictionary<string, string>(opts, StringComparer.InvariantCultureIgnoreCase);
             foreach (var usedopt in usedoptions)
+            {
                 isopts.Remove(usedopt);
+            }
 
             foreach (var k in updateInfo.GetType().GetFields())
-                if (isopts.ContainsKey(k.Name))
+            {
+                if (!isopts.ContainsKey(k.Name))
                 {
-                    try
-                    {
-                        //Console.WriteLine("Setting {0} to {1}", k.Name, isopts[k.Name]);
-                        if (k.FieldType == typeof(string[]))
-                            k.SetValue(updateInfo, isopts[k.Name].Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
-                        else if (k.FieldType == typeof(Version))
-                            k.SetValue(updateInfo, new Version(isopts[k.Name]));
-                        else if (k.FieldType == typeof(int))
-                            k.SetValue(updateInfo, int.Parse(isopts[k.Name]));
-                        else if (k.FieldType == typeof(long))
-                            k.SetValue(updateInfo, long.Parse(isopts[k.Name]));
-                        else
-                            k.SetValue(updateInfo, isopts[k.Name]);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Failed setting {0} to {1}: {2}", k.Name, isopts[k.Name], ex.Message);
-                    }
-
-                    isopts.Remove(k.Name);
+                    continue;
+                }
+                try
+                {
+                    //Console.WriteLine("Setting {0} to {1}", k.Name, isopts[k.Name]);
+                    if (k.FieldType == typeof(string[]))
+                        k.SetValue(updateInfo, isopts[k.Name].Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
+                    else if (k.FieldType == typeof(Version))
+                        k.SetValue(updateInfo, new Version(isopts[k.Name]));
+                    else if (k.FieldType == typeof(int))
+                        k.SetValue(updateInfo, int.Parse(isopts[k.Name]));
+                    else if (k.FieldType == typeof(long))
+                        k.SetValue(updateInfo, long.Parse(isopts[k.Name]));
+                    else
+                        k.SetValue(updateInfo, isopts[k.Name]);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Failed setting {0} to {1}: {2}", k.Name, isopts[k.Name], ex.Message);
                 }
 
-                foreach(var opt in isopts)
-                    Console.WriteLine("Warning! unused option: {0} = {1}", opt.Key, opt.Value);
+                isopts.Remove(k.Name);
+            }
+
+            foreach (var opt in isopts)
+            {
+                Console.WriteLine("Warning! unused option: {0} = {1}", opt.Key, opt.Value);
+            }
 
             using (var tf = new Duplicati.Library.Utility.TempFile())
             {
