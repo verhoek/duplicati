@@ -1,6 +1,8 @@
 ARG ARCH=
 FROM ${ARCH}mono:5-slim
 
+COPY qemu-arm-static /usr/bin
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
@@ -23,11 +25,13 @@ VOLUME /data
 COPY context/duplicati-cli context/duplicati-server /usr/bin/
 RUN chmod 0755 /usr/bin/duplicati-cli /usr/bin/duplicati-server
 
-ARG CHANNEL=
-ARG VERSION=
-ENV DUPLICATI_CHANNEL=${CHANNEL}
-ENV DUPLICATI_VERSION=${VERSION}
-COPY duplicati /opt/duplicati
+ARG RELEASE_TYPE=
+ARG RELEASE_VERSION=
+ARG RELEASE_NAME_SIMPLE=
+ENV DUPLICATI_CHANNEL=${RELEASE_TYPE}
+ENV DUPLICATI_VERSION=${RELEASE_VERSION}
+ENV RELEASE_NAME_SIMPLE ${RELEASE_NAME_SIMPLE}
+COPY ${RELEASE_NAME_SIMPLE} /opt/duplicati
 
 EXPOSE 8200
 CMD ["/usr/bin/duplicati-server", "--webservice-port=8200", "--webservice-interface=any"]
