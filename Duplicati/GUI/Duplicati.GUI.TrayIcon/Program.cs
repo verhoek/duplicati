@@ -183,7 +183,7 @@ namespace Duplicati.GUI.TrayIcon
                 if (databaseConnection != null)
                 {
                     disableTrayIconLogin = databaseConnection.ApplicationSettings.DisableTrayIconLogin;
-                    password = databaseConnection.ApplicationSettings.WebserverPasswordTrayIcon;
+                    password = databaseConnection.ApplicationSettings.WebServerPasswordTrayIcon;
                     saltedpassword = false;
 
                     var cert = databaseConnection.ApplicationSettings.ServerSSLCertificate;

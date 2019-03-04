@@ -389,8 +389,8 @@ namespace Duplicati.GUI.TrayIcon
                             case Program.PasswordSource.Database:
                                 Program.databaseConnection.ApplicationSettings.ReloadSettings();
                                 
-                                if (Program.databaseConnection.ApplicationSettings.WebserverPasswordTrayIcon != m_password)
-                                    m_password = Program.databaseConnection.ApplicationSettings.WebserverPasswordTrayIcon;
+                                if (Program.databaseConnection.ApplicationSettings.WebServerPasswordTrayIcon != m_password)
+                                    m_password = Program.databaseConnection.ApplicationSettings.WebServerPasswordTrayIcon;
                                 else
                                     hasTriedPassword = true;
                                 break;

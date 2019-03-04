@@ -437,7 +437,7 @@ namespace Duplicati.Server
                 DataConnection.ApplicationSettings.SetWebserverPassword(commandlineOptions["webservice-password"]);
             }
 
-            DataConnection.ApplicationSettings.GenerateWebserverPasswordTrayIcon();
+            DataConnection.ApplicationSettings.GenerateWebServerPasswordTrayIcon();
 
             if (commandlineOptions.ContainsKey("webservice-allowed-hostnames"))
             {

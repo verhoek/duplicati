@@ -181,7 +181,7 @@ namespace Duplicati.Server.WebServer
                     var password = Program.DataConnection.ApplicationSettings.WebserverPassword;
 
                     if (request.Headers[TRAYICONPASSWORDSOURCE_HEADER] == "database")
-                        password = Program.DataConnection.ApplicationSettings.WebserverPasswordTrayIconHash;
+                        password = Program.DataConnection.ApplicationSettings.WebServerPasswordTrayIconHash;
                     
                     var buf = new byte[32];
                     var expires = DateTime.UtcNow.AddMinutes(AUTH_TIMEOUT_MINUTES);

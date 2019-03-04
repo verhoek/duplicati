@@ -102,7 +102,7 @@ namespace Duplicati.Server.Database
             SaveSettings();
             
             if (newsettings.Keys.Contains(CONST.SERVER_PASSPHRASE))
-                GenerateWebserverPasswordTrayIcon();
+                GenerateWebServerPasswordTrayIcon();
         }
             
         private void SaveSettings()
@@ -348,13 +348,13 @@ namespace Duplicati.Server.Database
             SaveSettings();
         }
 
-        public string WebserverPasswordTrayIcon => settings[CONST.SERVER_PASSPHRASETRAYICON];
+        public string WebServerPasswordTrayIcon => settings[CONST.SERVER_PASSPHRASETRAYICON];
 
-        public string WebserverPasswordTrayIconHash => settings[CONST.SERVER_PASSPHRASETRAYICONHASH];
+        public string WebServerPasswordTrayIconHash => settings[CONST.SERVER_PASSPHRASETRAYICONHASH];
 
         public string AllowedHostnames => settings[CONST.SERVER_ALLOWED_HOSTNAMES];
 
-        public void GenerateWebserverPasswordTrayIcon()
+        public void GenerateWebServerPasswordTrayIcon()
         {
             var password = "";
             var pwd = "";
