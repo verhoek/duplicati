@@ -515,7 +515,7 @@ namespace Duplicati.Server.WebServer.RESTMethods
             
         public void PUT(string key, RequestInfo info)
         {
-            string str = info.Request.Form["data"].Value;
+            var str = info.Request.Form["data"].Value;
             if (string.IsNullOrWhiteSpace(str))
                 str = new StreamReader(info.Request.Body, System.Text.Encoding.UTF8).ReadToEnd();
 
@@ -571,7 +571,7 @@ namespace Duplicati.Server.WebServer.RESTMethods
                             return;
                         }
 
-                        var err = Program.DataConnection.ValidateBackup(data.Backup, data.Schedule);
+                        var err = BackupItemValidator.ValidateBackup(data.Backup, data.Schedule);
                         if (!string.IsNullOrWhiteSpace(err))
                         {
                             info.ReportClientError(err, System.Net.HttpStatusCode.BadRequest);

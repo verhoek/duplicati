@@ -88,7 +88,7 @@ namespace Duplicati.Server.WebServer.RESTMethods
                                 info.BodyWriter.Write(output_template.Replace("MSG", "There already exists a backup with the name: " + basename.Replace("\'", "\\'")));
                             }
 
-                            var err = Program.DataConnection.ValidateBackup(ipx.Backup, ipx.Schedule);
+                            var err = BackupItemValidator.ValidateBackup(ipx.Backup, ipx.Schedule);
                             if (!string.IsNullOrWhiteSpace(err))
                             {
                                 info.ReportClientError(err, System.Net.HttpStatusCode.BadRequest);
@@ -134,7 +134,7 @@ namespace Duplicati.Server.WebServer.RESTMethods
                     throw new InvalidOperationException($"A backup with the name {importedStructure.Backup.Name} already exists.");
                 }
 
-                string error = connection.ValidateBackup(importedStructure.Backup, importedStructure.Schedule);
+                string error = BackupItemValidator.ValidateBackup(importedStructure.Backup, importedStructure.Schedule);
                 if (!string.IsNullOrWhiteSpace(error))
                 {
                     throw new InvalidOperationException(error);
@@ -259,7 +259,7 @@ namespace Duplicati.Server.WebServer.RESTMethods
                             return;
                         }
 
-                        var err = Program.DataConnection.ValidateBackup(data.Backup, data.Schedule);
+                        var err = BackupItemValidator.ValidateBackup(data.Backup, data.Schedule);
                         if (!string.IsNullOrWhiteSpace(err))
                         {
                             info.ReportClientError(err, System.Net.HttpStatusCode.BadRequest);
